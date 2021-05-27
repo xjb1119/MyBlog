@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+
+</head>
+
+<body>
+
+<!--    访客导航-->
+<nav th:fragment="visitorsMenu(n)" class="ui inverted attached segment me-padded-tb-mini me-shadow-small me-segment-border-none">
+    <div class="ui container">
+        <div class="ui inverted secondary stackable menu">
+            <h2 class="ui blue header item myBlog">XB_Blog</h2>
+            <a href="#" th:href="@{/}" class="m-item item me-mobile-hide" th:classappend="${n==1} ? active"><i class="home icon"></i>首页</a>
+            <a href="#" th:href="@{/types}" class="m-item item me-mobile-hide" th:classappend="${n==2} ? active"><i class="clone icon"></i>分类</a>
+            <a href="#" th:href="@{/tags}" class="m-item item me-mobile-hide" th:classappend="${n==3} ? active"><i class="tags icon"></i>标签</a>
+            <a href="#" th:href="@{/archives}" class="m-item item me-mobile-hide" th:classappend="${n==4} ? active"><i class="folder icon"></i>归档</a>
+<!--            <a href="#" class="m-item item me-mobile-hide" th:classappend="${n==5} ? active"><i class="image icon"></i>照片墙</a>-->
+            <a href="#" th:href="@{/about}" class="m-item item me-mobile-hide" th:classappend="${n==5} ? active"><i class="info icon"></i>关于我</a>
+<!--            <a href="#" th:href="@{/admin/blogs}" class="m-item item me-mobile-hide" th:if="${session.user}!=null"><i class="cog icon"></i>后台</a>-->
+            <div class="right m-item item me-mobile-hide">
+                <form name="search" action="#" th:action="@{/search}" method="get" target="_blank">
+                    <div class="ui icon inverted transparent input me-margin-tb-tiny">
+                        <input type="text" name="query" placeholder="搜索..." th:value="${query}">
+                        <i onclick="document.forms['search'].submit()" class="search link icon"></i>
+                    </div>
+                </form>
+            </div>
+            <a href="#" th:href="@{/admin/blogs}" class="m-item item me-mobile-hide"><i class="cog icon"></i></a>
+        </div>
+    </div>
+    <a href="#" class="ui menu black icon button me-right-top me-mobile-show" id="visitorsMenuToggle">
+        <i class="sidebar icon"></i>
+    </a>
+</nav>
+
+
+
+<!--    管理员导航-->
+<nav th:fragment="adminMenu(n)" class="ui inverted attached segment me-padded-tb-mini me-shadow-small me-segment-border-none">
+    <div class="ui container">
+        <div class="ui inverted secondary stackable menu">
+            <h2 class="ui blue header item">管理后台</h2>
+            <a href="#" th:href="@{/admin/blogs}" class="m-item item me-mobile-hide" th:classappend="${n==1}?active"><i class="home icon"></i>博客</a>
+            <a href="#" th:href="@{/admin/types}" class="m-item item me-mobile-hide" th:classappend="${n==2}?active"><i class="clone icon"></i>分类</a>
+            <a href="#" th:href="@{/admin/tags}" class="m-item item me-mobile-hide" th:classappend="${n==3}?active"><i class="tags icon"></i>标签</a>
+            <a href="#" th:href="@{/admin/comments}" class="m-item item me-mobile-hide" th:classappend="${n==4}?active"><i class="comments icon"></i>评论</a>
+            <a href="#" th:href="@{/}" class="m-item item me-mobile-hide"><i class="cloud upload icon"></i>前台</a>
+            <!--            <a href="#" class="m-item item me-mobile-hide" th:classappend="${n==5}?active"><i class="image icon"></i>照片墙</a>-->
+            <div class="right m-item me-mobile-hide menu">
+                <div class="ui dropdown item">
+                    <div class="text">
+                        <img src="../../static/images/aboutMe.jpg" th:src="${session.user.avatar}" alt="" class="ui avatar image" >
+                        <span th:text="${session.user.nickname}"></span>
+                    </div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                        <a href="#" th:href="@{/admin/logout}"  class="item">注销</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="#" class="ui menu black icon button me-right-top me-mobile-show" id="adminMenuToggle">
+        <i class="sidebar icon"></i>
+    </a>
+</nav>
+
+
+
+
+
+
+
+
+<!--底部footer-->
+<footer th:fragment="footer" class="ui inverted vertical segment me-padded-tb-massive me-segment-border-none">
+    <div class="ui center aligned container">
+        <div class="ui inverted divided stackable grid">
+            <div class="three wide column">
+                <div class="ui inverted link list">
+                    <div class="item">
+                        <img src="../static/images/wechat.jpg" th:src="@{/images/wechat.jpg}" class="ui rounded image" alt="" style="width: 110px">
+                    </div>
+                </div>
+            </div>
+            <div class="three wide column">
+                <h4 class="ui inverted header me-text-thin me-text-spaced">热门博客</h4>
+                <div id="hotblog-container">
+                    <div class="ui inverted link list" th:fragment="hotblogList">
+                        <a href="#" th:href="@{/blog/{id}(id=${blog.blogId})}" target="_blank" class="item me-text-thin" th:each="blog : ${hotblogs}"
+                           th:text="${blog.title}">用户故事 （User Story）</a>
+                        <!--/*-->
+                        <a href="#" class="item">用户故事 （User Story）</a>
+                        <a href="#" class="item">用户故事 （User Story）</a>
+                        <!--*/-->
+                    </div>
+                </div>
+            </div>
+            <div class="three wide column">
+                <h4 class="ui inverted header me-text-thin me-text-spaced">联系我</h4>
+                <div class="ui inverted link list">
+                    <a href="#" class="item me-text-thin" th:text="#{index.email}">Email: 2480662125@qq.com</a>
+                    <a href="#" class="item me-text-thin" th:text="#{index.qq}">QQ: 2480662125</a>
+                </div>
+            </div>
+            <div class="seven wide column">
+                <h4 class="ui inverted header me-text-thin me-text-spaced">MyBlog</h4>
+                <div class="ui inverted link list">
+                    <div class="item">
+                        <p class="me-text-thin me-text-spaced" th:text="#{index.synopsis}">这是我的个人博客、记录学习进度和关于编程、写作、思考相关的任何内容...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ui inverted section divider"></div>
+        <p class="me-text-thin me-text-spaced me-opacity-tiny">Copyright © 2021 - 2021&nbsp;&nbsp;&nbspXJB&nbsp;&nbsp;&nbsp;Designed by Bo</p>
+    </div>
+</footer>
+
+
+
+<th:block th:fragment="script">
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.2/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+
+    <script>
+        $('#hotblog-container').load(/*[[@{/footer/hotblog}]]*/"/footer/hotblog");
+    </script>
+
+</th:block>
+
+
+</body>
+</html>

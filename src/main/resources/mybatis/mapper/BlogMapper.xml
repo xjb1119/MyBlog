@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xjb.dao.BlogMapper">
+
+
+    <!--新增保存标签-->
+    <insert id="saveBlog" parameterType="com.xjb.pojo.Blog">
+        insert into `t_blog` values (#{id},#{title},#{content},#{firstPicture},#{flag},#{views},
+        #{commentCount},#{appreciation},#{shareStatement},#{commentabled},
+        #{published},#{recommend},#{createTime},#{updateTime},#{typeId},#{userId},#{description});
+    </insert>
+
+    <update id="updateBlog" parameterType="com.xjb.pojo.Blog">
+        update t_blog set title = #{title} , content = #{content} , first_picture = #{firstPicture} , description = #{description},
+        flag = #{flag} , appreciation = #{appreciation} , share_statement = #{shareStatement} , commentabled = #{commentabled} ,
+        published = #{published} , recommend = #{recommend} , update_time = #{updateTime} , type_id = #{typeId} where id = #{id};
+    </update>
+
+    <select id="getBlogManage" resultType="com.xjb.vo.BlogManage">
+        SELECT b.`id`,b.`title`,b.`update_time`,b.`recommend`,b.`published`,t.`id` AS typeId,t.`name` AS typeName
+        FROM t_blog b,t_type t
+        WHERE b.`type_id`=t.`id`;
+    </select>
+
+<!--暂时不用改sql-->
+    <select id="getBlogAdminSearch" resultType="com.xjb.vo.BlogManage" parameterType="com.xjb.vo.BlogSearch">
+        <bind name="pattern" value="'%' + title + '%'" />
+        SELECT b.id,b.title,b.update_time,b.recommend,b.published,t.id AS typeId,t.name AS typeName
+        FROM t_blog b ,t_type t
+        <where>
+            <if test="1 == 1">
+                b.type_id = t.id
+            </if>
+            <if test="typeId != null">
+                and b.type_id = #{typeId}
+            </if>
+            <if test="title != null">
+                and b.title like #{pattern}
+            </if>
+            <if test="recommend != null">
+                and b.recommend = #{recommend}
+            </if>
+        </where>
+    </select>
+
+
+    <select id="getBlogPublishedIndex" resultType="com.xjb.vo.BlogIndex">
+
+        SELECT b.`id` AS blogId,b.`title`,b.`description`,b.`first_picture`,b.`update_time`,b.`views`,
+            b.`comment_count`,t.`name` AS typeName,u.`nickname`,u.`avatar`
+        FROM `t_blog` b,`t_user` u,`t_type` t
+        WHERE b.`type_id` = t.`id` AND b.`user_id` = u.`id` AND b.`published` = 1;
+
+    </select>
+
+
+    <select id="getBlogRecommendDesc" resultType="com.xjb.vo.BlogIndex" parameterType="integer">
+        SELECT b.`id` AS blogId,b.`views`,b.`title`
+        FROM `t_blog` b
+        WHERE b.`published` = 1 AND b.`recommend` = 1
+        ORDER BY b.`views` DESC
+        LIMIT #{blogCount};
+    </select>
+
+
+    <select id="getBlogVisitorsSearch" resultType="com.xjb.vo.BlogIndex" parameterType="string">
+        SELECT b.`id` AS blogId,b.`title`,b.`description`,b.`first_picture`,b.`update_time`,b.`views`,
+            b.`comment_count`,u.`nickname`,u.`avatar`,t.`name` AS typeName
+        FROM t_blog b
+        INNER JOIN t_type t ON b.`type_id` = t.`id`
+        INNER JOIN t_user u ON b.`user_id` = u.`id`
+        WHERE b.`published` = 1 AND (b.`title` LIKE #{query} OR b.`content` LIKE #{query} OR b.`description` LIKE #{query});
+    </select>
+
+
+    <select id="getOneBlogShow" resultType="com.xjb.vo.BlogIndex" parameterType="long">
+        SELECT b.`id` AS blogId,b.`title`,b.`description`,b.`first_picture`,b.`update_time`,b.`views`,b.`comment_count`,
+	        b.`content`,b.`flag`,b.`appreciation`,b.`share_statement`,b.`commentabled`,u.`nickname`,u.`avatar`,t.`name` AS typeName
+        FROM `t_blog` b
+        INNER JOIN `t_type` t ON b.`type_id` = t.`id`
+        INNER JOIN `t_user` u ON b.`user_id` = u.`id`
+        WHERE b.`published` = 1 AND b.`id` = #{blogId};
+    </select>
+
+
+    <select id="getBlogByTypeId" resultType="com.xjb.vo.BlogIndex">
+        SELECT b.`id` AS blogId,b.`title`,b.`description`,b.`first_picture`,b.`update_time`,b.`views`,
+            b.`comment_count`,u.`nickname`,u.`avatar`,t.`name` AS typeName
+        FROM `t_blog` b
+        INNER JOIN `t_type` t ON b.`type_id` = t.`id`
+        INNER JOIN `t_user` u ON b.`user_id` = u.`id`
+        WHERE b.`published` = 1 AND b.`type_id` = #{typeId};
+
+    </select>
+
+    <select id="getBlogByTagId" resultType="com.xjb.vo.BlogIndex">
+
+        SELECT b.`id` AS blogId,b.`title`,b.`description`,b.`first_picture`,b.`update_time`,b.`views`,
+            b.`comment_count`,u.`nickname`,u.`avatar`,t.`name` AS typeName
+        FROM `t_blog` b
+        INNER JOIN `t_blog_tags` bts ON b.`id` = bts.`blog_id`
+        INNER JOIN `t_tag` t ON bts.`tag_id` = t.`id`
+        INNER JOIN `t_user` u ON b.`user_id` = u.`id`
+        WHERE b.`published` = 1 AND bts.`tag_id` = #{tagId};
+
+    </select>
+
+
+    <select id="getAllYearDesc" resultType="string">
+
+        SELECT DATE_FORMAT(b.`update_time`,'%Y') AS `year`
+        FROM `t_blog` b
+        WHERE b.`published` = 1
+        GROUP BY DATE_FORMAT(b.`update_time`,'%Y')
+        ORDER BY `year` DESC;
+
+    </select>
+
+
+    <select id="getBlogByYear" resultType="com.xjb.pojo.Blog">
+
+        SELECT b.`id`,b.`title`,b.`flag`,b.`update_time`
+        FROM `t_blog` b
+        WHERE b.`published` = 1 AND DATE_FORMAT(b.`update_time`,'%Y') = #{year}
+        ORDER BY b.`update_time` DESC
+
+    </select>
+
+
+</mapper>

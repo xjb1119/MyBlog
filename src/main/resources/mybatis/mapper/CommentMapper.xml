@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xjb.dao.CommentMapper">
+
+<!--    <resultMap id="comment" type="com.xjb.pojo.Comment">-->
+<!--        <id property="id" column="cid"/>-->
+<!--        <result property="nickname" column="nickname"/>-->
+<!--        <result property="email" column="email"/>-->
+<!--        <result property="content" column="content"/>-->
+<!--        <result property="adminComment" column="admin_comment"/>-->
+<!--        <result property="avatar" column="avatar"/>-->
+<!--        <result property="createTime" column="create_time"/>-->
+<!--        <result property="blogId" column="blog_id"/>-->
+<!--        <result property="parentCommentId" column="parent_comment_id"/>-->
+<!--        <association property="blog" javaType="com.xjb.pojo.Blog">-->
+<!--            <id property="id" column="id"/>-->
+<!--        </association>-->
+<!--    </resultMap>-->
+
+<!--没有父评论的评论父评论id为-1-->
+    <select id="getByBlogIdAllComment" resultType="com.xjb.pojo.Comment">
+        select c.`id`,c.`nickname`,c.`email`,c.`content`,c.`avatar`,c.`create_time`,c.`blog_id`,c.`parent_comment_id`,
+        c.`parent_comment_name`,c.`admin_comment`
+        from t_comment c
+        where c.blog_id = #{blogId} AND c.parent_comment_id = -1
+        ORDER BY c.create_time DESC;
+    </select>
+
+    <insert id="saveComment" parameterType="com.xjb.pojo.Comment">
+
+        insert into t_comment (`nickname`,`email`,`content`,`avatar`,`create_time`,`blog_id`,`parent_comment_id`,
+        `admin_comment`,`root_comment_id`,`parent_comment_name`)
+        values(#{nickname},#{email},#{content},#{avatar},#{createTime},#{blogId},#{parentCommentId},#{adminComment},
+        #{rootCommentId},#{parentCommentName});
+
+    </insert>
+
+
+    <select id="getParentComment" resultType="com.xjb.pojo.Comment">
+        SELECT c.`id`,c.`nickname`,c.`email`,c.`content`,c.`avatar`,c.`create_time`,c.`blog_id`,c.`parent_comment_id`,
+        c.`root_comment_id`,c.`parent_comment_name`,c.`admin_comment`
+        FROM `t_comment` c
+        WHERE  c.`id` = #{parentCommentId};
+    </select>
+
+
+    <select id="getAllReplyRootComment" resultType="com.xjb.pojo.Comment">
+
+        SELECT c.`id`,c.`nickname`,c.`email`,c.`content`,c.`avatar`,c.`create_time`,c.`blog_id`,c.`parent_comment_id`,
+        c.`root_comment_id`,c.`parent_comment_name`,c.`admin_comment`
+        FROM `t_comment` c
+        WHERE c.`blog_id` = #{blogId} AND c.`root_comment_id` = #{rootCommentId}
+        ORDER BY c.create_time DESC;
+
+    </select>
+
+
+    <insert id="updateComments">
+        UPDATE t_blog t
+            SET t.comment_count = (
+	        SELECT COUNT(*)
+	        FROM `t_comment` c
+	        WHERE c.`blog_id` = #{blogId}
+	        )
+        WHERE  t.`id` = #{blogId};
+    </insert>
+
+
+    <delete id="deleteComment">
+        DELETE FROM t_comment
+        <where>
+            <if test="rootCommentId != -1">
+                id = #{commentId}
+            </if>
+            <if test="rootCommentId == -1">
+                id IN (
+                    SELECT c.id FROM (
+                    SELECT t.`id`
+                    FROM t_comment t
+                    WHERE t.`root_comment_id` = #{commentId} OR t.`id` = #{commentId} ) c
+                )
+            </if>
+        </where>
+
+
+    </delete>
+</mapper>

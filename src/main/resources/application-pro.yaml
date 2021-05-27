@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/blog?useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: '0106'
+
+# 配置mybatis规则
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/*.xml  #sql映射文件位置
+  configuration:  # 指定mybatis全局配置文件中的相关配置项
+    map-underscore-to-camel-case: true    #开启驼峰命名功能
+
+logging:
+  level:
+    root: warn
+    com.bo: info
+  file:
+    name: log/blog-pro.log
+
+#server:
+#  port: 8081

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"> <!--设置移动端的预览-->
+    <title>博客管理</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+    <link rel="stylesheet" href="../../static/css/me.css" th:href="@{/css/me.css}">
+
+</head>
+<body>
+
+<!--    管理员导航-->
+<div th:replace="common :: adminMenu(1)" class="ui inverted attached segment me-padded-tb-mini me-shadow-small">
+    <div class="ui container">
+        <div class="ui inverted secondary stackable menu">
+            <h2 class="ui blue header item">管理后台</h2>
+            <a href="#" class="m-item item me-mobile-hide active"><i class="home icon"></i>博客</a>
+            <a href="#" class="m-item item me-mobile-hide"><i class="clone icon"></i>分类</a>
+            <a href="#" class="m-item item me-mobile-hide"><i class="tags icon"></i>标签</a>
+            <div class="right m-item me-mobile-hide menu">
+                <div class="ui dropdown item">
+                    <div class="text">
+                        <img src="../../static/images/aboutMe.jpg" alt="" class="ui avatar image" >
+                        <span>肖剑波</span>
+                    </div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                        <a href="#" class="item">注销</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="#" class="ui menu black icon button me-right-top me-mobile-show" id="adminMenuToggle">
+        <i class="sidebar icon"></i>
+    </a>
+</div>
+
+<div class="ui attached pointing menu">
+    <div class="ui container">
+        <div class="right menu">
+            <a href="#" th:href="@{/admin/blogs/input}" class="item">发布</a>
+            <a href="#" th:href="@{/admin/blogs}" class="blue active item">列表</a>
+        </div>
+    </div>
+</div>
+
+
+<!--    中间内容-->
+<div class="me-container-small me-padded-tb-middle">
+    <div class="ui container">
+
+        <!--        操作提示按钮-->
+        <div class="ui blue message" th:unless="${#strings.isEmpty(message)}">
+            <i class="close icon"></i>
+            <div class="header">提示:</div>
+            <p th:text="${message}">操作成功</p>
+        </div>
+
+        <div class="ui segment form">
+            <br/>
+            <input type="hidden" name="pageNum">
+            <div class="inline fields">
+                <div class="field">
+                    <input type="text" name="title" placeholder="标题">
+                </div>
+                <div class="field">
+                    <div class="ui labeled action input">
+                        <div class="ui type selection dropdown label">
+<!--                        data-value="1"中的值就是name="typeId"的value的值，所以提交表单时值为th处理后的type.id-->
+                            <input type="hidden" name="typeId">
+                            <i class="dropdown icon"></i>
+                            <div class="default text" style="font-weight: normal">分类</div>
+                            <div class="menu">
+                                <div class="item" th:each="type : ${types}" th:data-value="${type.id}" data-value="1"
+                                     th:text="${type.name}">错误日志
+                                </div>
+                            </div>
+                        </div>
+<!--                        取消分类按钮-->
+                        <button id="clear-btn" class="ui compact button" style="font-weight: normal">取消</button>
+                    </div>
+
+
+                </div>
+                <div class="field">
+                    <div class="ui checkbox">
+                        <input type="checkbox" name="recommend" id="recommend">
+                        <label for="recommend">推荐</label>
+                    </div>
+                </div>
+                <div class="field">
+                    <button type="button" id="search-btn" class="ui blue basic button"><i class="search icon"></i>搜索</button>
+                </div>
+            </div>
+        </div>
+        <div id="table-container">
+            <table th:fragment="blogList" class="ui compact blue table">
+                <thead>
+                <tr align="center">
+                    <th width="4%">ID</th>
+                    <th width="24%">标题</th>
+                    <th width="13%">类型</th>
+                    <th width="9%">推荐</th>
+                    <th width="10%">状态</th>
+                    <th width="17%">更新时间</th>
+                    <th width="23%">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="blog,iterStat : ${pageInfo.list}" align="center">
+                    <td th:text="${iterStat.count}">1</td>
+                    <td th:text="${blog.title}">刻意练习清单</td>
+                    <td th:text="${blog.typeName}">我的故事</td>
+                    <td th:text="${blog.recommend} ? '是' : '否'">是</td>
+                    <td th:text="${blog.published} ? '发布' : '草稿'">发布</td>
+                    <td th:text="${#dates.format(blog.updateTime,'yyyy-MM-dd HH:mm')}">2021-04-13 21:20</td>
+                    <td>
+                        <a href="#" th:href="@{/admin/blogs/{id}/input(id=${blog.id})}"
+                           class="ui basic blue button">编辑</a>
+                        <a href="#" th:href="@{/admin/blogs/{id}/delete(id=${blog.id},pageNum=${pageInfo.pageNum})}"
+                           class="ui basic red button">删除</a>
+                    </td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+<!--                    没有点击搜索按钮时触发的分页模块-->
+                    <th colspan="7" th:if="${isSearch} == false">
+                        <div class="ui inverted divided stackable grid">
+                            <div class="three wide column" align="center">
+                                <a th:href="@{/admin/blogs(pageNum=${pageInfo.hasPreviousPage}?${pageInfo.prePage}:1)}"
+                                   th:unless="${pageInfo.isFirstPage}" class="item">上一页</a>
+                            </div>
+
+                            <div class="ten wide column" align="center">
+                                <p>第 <span th:text="${pageInfo.pageNum}"></span> 页，共 <span
+                                        th:text="${pageInfo.pages}"></span> 页，有 <span
+                                        th:text="${pageInfo.total}"></span> 篇博客</p>
+                            </div>
+
+                            <div class="three wide column" align="center">
+                                <a th:href="@{/admin/blogs(pageNum=${pageInfo.hasNextPage}?${pageInfo.nextPage}:${pageInfo.pages})}"
+                                   th:unless="${pageInfo.isLastPage}" class="item">下一页</a>
+                            </div>
+                        </div>
+                        <div align="center" class="me-padded-tb-small">
+                            <a href="#" th:href="@{/admin/blogs/input}">
+                                <button type="button" class="ui blue basic button"><i class="pencil icon"></i>新增
+                                </button>
+                            </a>
+                        </div>
+                    </th>
+
+
+<!--                    点击了搜索按钮后触发的分页模块-->
+                    <th colspan="7" th:if="${isSearch} == true">
+                        <div class="ui inverted divided stackable grid">
+                            <div class="three wide column" align="center">
+                                <a onclick="pageNumSearch(this)" th:attr="data-value=${pageInfo.prePage}" th:unless="${pageInfo.isFirstPage}"
+                                   class="item">上一页</a>
+                            </div>
+
+                            <div class="ten wide column" align="center">
+                                <p>第 <span th:text="${pageInfo.pageNum}"></span> 页，共 <span
+                                        th:text="${pageInfo.pages}"></span> 页，有 <span
+                                        th:text="${pageInfo.total}"></span> 篇博客</p>
+                            </div>
+
+                            <div class="three wide column" align="center">
+                                <a onclick="pageNumSearch(this)" th:attr="data-value=${pageInfo.nextPage}" th:unless="${pageInfo.isLastPage}"
+                                   class="item">下一页</a>
+                            </div>
+                        </div>
+                        <div align="center" class="me-padded-tb-small">
+                            <a href="#" th:href="@{/admin/blogs/input}">
+                                <button type="button" class="ui blue basic button"><i class="pencil icon"></i>新增
+                                </button>
+                            </a>
+                        </div>
+                    </th>
+                </tr>
+                </tfoot>
+
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+<br/>
+<br/>
+
+<!--底部footer-->
+<div th:replace="common :: footer" class="ui inverted vertical segment me-padded-tb-massive">
+
+    <div class="ui center aligned container">
+        <div class="ui inverted divided stackable grid">
+            <div class="three wide column">
+                <div class="ui inverted link list">
+                    <div class="item">
+                        <img src="../../static/images/wechat.jpg" th:src="@{/images/wechat.jpg}" class="ui rounded image" alt="" style="width: 110px">
+                    </div>
+                </div>
+            </div>
+            <div class="three wide column">
+                <h4 class="ui inverted header me-text-thin me-text-spaced">最新博客</h4>
+                <div class="ui inverted link list">
+                    <a href="#" class="item">用户故事 （User Story）</a>
+                    <a href="#" class="item">用户故事 （User Story）</a>
+                    <a href="#" class="item">用户故事 （User Story）</a>
+                </div>
+            </div>
+            <div class="three wide column">
+                <h4 class="ui inverted header me-text-thin me-text-spaced">联系我</h4>
+                <div class="ui inverted link list">
+                    <a href="#" class="item">Email: xjb19990106@163.com</a>
+                    <a href="#" class="item">QQ: 2480662125</a>
+                </div>
+            </div>
+            <div class="seven wide column">
+                <h4 class="ui inverted header me-text-thin me-text-spaced">MyBlog</h4>
+                <div class="ui inverted link list">
+                    <div class="item">
+                        <p class="me-text-thin me-text-spaced">这是我的个人博客、记录学习进度和关于编程、写作、思考相关的任何内容...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ui inverted section divider"></div>
+        <p class="me-text-thin me-text-spaced me-opacity-tiny">Copyright © 2021 - 2021  XJB   Designed by Bo</p>
+    </div>
+
+</div>
+
+
+<div th:include="common :: script">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.2/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+</div>
+
+
+<script>
+    $('#adminMenuToggle').click(function (){
+        $('.m-item').toggleClass('me-mobile-hide');
+    });
+    $('#visitorsMenuToggle').click(function (){
+        $('.m-item').toggleClass('me-mobile-hide');
+    });
+
+
+    $('.ui.dropdown').dropdown({
+        on: 'hover'
+    });
+
+    //点击了搜索按钮时触发的函数
+    //当点击上一页和下一页时，调用这个函数把当前页面的上一页或下一页放在隐藏域(name=pageNum)中
+    //然后以post方式提交表单
+    function pageNumSearch(object) {
+        $("[name='pageNum']").val($(object).data("value"));
+        loaddata();
+    }
+
+    //点击搜索按钮，调用loaddata()
+    $("#search-btn").click(function () {
+        $("[name='pageNum']").val(1);
+        loaddata();
+    });
+
+    //先给隐藏域赋值
+    //再将搜索栏的标题、分类id和推荐封装成对象和页码数一起发给admin/blogs/search用于更新#table-container中的内容
+    function loaddata() {
+        $("#table-container").load(/*[[@{/admin/blogs/search}]]*/"/admin/blogs/search", {
+            title: $("[name='title']").val(),
+            typeId: $("[name='typeId']").val(),
+            recommend: $("[name='recommend']").prop('checked'),
+            pageNum: $("[name='pageNum']").val()
+        });
+    }
+
+    //消息提示关闭初始化
+    $('.message .close').on('click',function () {
+        $(this).closest('.message').transition('fade');
+    });
+
+    //取消下拉栏中所选的分类
+    $('#clear-btn').click(function () {
+        $('.ui.type.dropdown').dropdown('clear');
+    });
+</script>
+
+</body>
+</html>

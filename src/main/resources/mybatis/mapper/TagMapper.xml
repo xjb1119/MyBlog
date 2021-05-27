@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xjb.dao.TagMapper">
+
+    <!--新增保存标签-->
+    <insert id="saveTag" parameterType="com.xjb.pojo.Tag">
+        insert into `t_tag`(`id`,`name`) values (#{id},#{name});
+    </insert>
+
+
+    <select id="getIdListTag" resultType="com.xjb.pojo.Tag" parameterType="list">
+        SELECT *
+        FROM t_tag
+        WHERE id in
+        <foreach collection="idList" item="item" index="index"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getTagRandomIndex" resultType="com.xjb.vo.TagIndex" parameterType="integer">
+
+        SELECT t.`id` AS tagId,t.`name` AS tagName,COUNT(b.`id`) AS blogCount
+        FROM `t_blog` b,`t_blog_tags` bts,`t_tag` t
+        WHERE b.`id` = bts.`blog_id` AND t.`id` = bts.`tag_id` AND b.`published` = 1
+        GROUP BY t.`id`
+        ORDER BY RAND()
+        LIMIT #{tagCount};
+
+    </select>
+
+
+    <select id="getTagNameByBlogId" resultType="com.xjb.vo.TagIndex" parameterType="long">
+        SELECT t.`id` AS tagId,t.`name` AS tagName
+        FROM `t_blog_tags` bts,`t_tag` t
+        WHERE bts.`tag_id` = t.`id` AND bts.`blog_id` = #{blogId};
+
+    </select>
+
+
+    <select id="getTagDescIndex" resultType="com.xjb.vo.TagIndex">
+
+        SELECT t.`id` AS tagId,t.`name` AS tagName,COUNT(b.`id`) AS blogCount
+        FROM `t_blog` b,`t_blog_tags` bts,`t_tag` t
+        WHERE b.`id` = bts.`blog_id` AND t.`id` = bts.`tag_id` AND b.`published` = 1
+        GROUP BY t.`id`
+        ORDER BY COUNT(b.`id`) DESC
+        LIMIT #{tagCount};
+
+    </select>
+</mapper>

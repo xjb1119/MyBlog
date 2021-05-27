@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"> <!--设置移动端的预览-->
+    <title>评论详情</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+    <link rel="stylesheet" href="../../static/css/me.css" th:href="@{/css/me.css}">
+
+    <link rel="stylesheet" href="../../static/css/typo.css" th:href="@{/css/typo.css}">
+    <link rel="stylesheet" href="../../static/css/animate.css" th:href="@{/css/animate.css}">
+    <link rel="stylesheet" href="../../static/lib/prism/prism.css" th:href="@{/lib/prism/prism.css}">
+
+</head>
+<body>
+
+
+<!--    管理员导航-->
+<div th:replace="common :: adminMenu(4)" class="ui inverted attached segment me-padded-tb-mini me-shadow-small">
+    <div class="ui container">
+        <div class="ui inverted secondary stackable menu">
+            <h2 class="ui blue header item">管理后台</h2>
+            <a href="#" class="m-item item me-mobile-hide"><i class="home icon"></i>博客</a>
+            <a href="#" class="m-item item me-mobile-hide"><i class="clone icon"></i>分类</a>
+            <a href="#" class="m-item item me-mobile-hide"><i class="tags icon"></i>标签</a>
+            <a href="#" class="m-item item me-mobile-hide active"><i class="comments icon"></i>评论</a>
+            <div class="right m-item me-mobile-hide menu">
+                <div class="ui dropdown item">
+                    <div class="text">
+                        <img src="../../static/images/aboutMe.jpg" alt="" class="ui avatar image" >
+                        <span>肖剑波</span>
+                    </div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                        <a href="#" class="item">注销</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="#" class="ui menu black icon button me-right-top me-mobile-show" id="adminMenuToggle">
+        <i class="sidebar icon"></i>
+    </a>
+</div>
+
+<!--导航下面的详情与列表-->
+<div class="ui attached pointing menu">
+    <div class="ui container">
+        <div class="right menu">
+            <a href="#" th:href="@{/admin/comments/details/{blogId}(blogId=${blog.blogId})}" class="blue active item">详情</a>
+            <a href="#" th:href="@{/admin/comments}" class="item">列表</a>
+        </div>
+    </div>
+</div>
+
+<!--    中间内容-->
+    <div id="waypoint" class="me-container-small me-padded-tb-middle animated fadeIn">
+        <div class="ui container">
+            <div class="ui top attached segment me-segment-border-none">
+                <div class="ui horizontal link list">
+                    <div class="item">
+                        <img src="https://picsum.photos/id/1/100/100" th:src="@{${blog.avatar}}" alt="" class="ui avatar image">
+                        <div class="content">
+                            <a href="#" class="header" th:text="${blog.nickname}">肖剑波</a>
+                        </div>
+                    </div>
+                    <div class="item">
+                        <span>
+                            <i class="calendar icon"></i>
+                        <span th:text="${#dates.format(blog.updateTime,'yyyy-MM-dd')}">2021-4-11</span>
+                        </span>
+                    </div>
+                    <div class="item">
+                        <span>
+                            <i class="eye icon"></i>
+                            <span th:text="${blog.views}">531</span>
+                        </span>
+                    </div>
+                    <div class="item">
+                        <span>
+                            <i class="comments icon"></i>
+                            <span th:text="${blog.commentCount}">231</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="ui attached segment me-segment-border-none">
+<!--                内容-->
+<!--                basic segment去边框-->
+                <div class="ui right aligned basic segment">
+                    <div class="ui blue label large" th:text="${blog.flag}">转载</div>
+                </div>
+                <h2 class="ui center aligned header">
+                    <a href="#" th:href="@{/blog/{blogId}(blogId=${blog.blogId})}" target="_blank" th:text="${blog.title}"
+                       class="me-black">旅游散文记录：一个人的旅行</a>
+                </h2>
+<!--                <br/>-->
+
+                <div class="me-padded-tb-middle">
+                    <p class="ui me-text" th:text="|${blog.description}.....|" style="margin:0 auto;width:600px;">
+                        最近迷上了淘宝购物。我喜欢买一点自己心仪的小东西，给生活带来一些乐趣。在这过程我发现一个现象，就是只要你搜索了什么商品，淘宝上就有无数有关这些商...
+                    </p>
+                </div>
+
+            </div>
+
+
+
+<!--            评论模块(包括评论和删除功能)-->
+            <div class="ui bottom attached segment me-segment-border-topNoNone" th:if="${blog.commentabled}">
+                <!--        操作提示按钮-->
+                <div class="ui blue message" th:unless="${#strings.isEmpty(message)}">
+                    <i class="close icon"></i>
+                    <div class="header">提示:</div>
+                    <p th:text="${message}">操作成功</p>
+                </div>
+
+<!--                留言区域列表-->
+                <div class="ui basic segment">
+                    <div class="ui threaded comments" style="max-width: 100%;">
+                        <h3 class="ui dividing header">评论</h3>
+                        <div class="comment" th:each="comment : ${comments}">
+                            <a class="avatar">
+                                <img src="https://picsum.photos/id/1/100/100" th:src="@{${comment.avatar}}">
+                            </a>
+                            <div class="content">
+                                <div class="author">
+                                    <span th:text="${comment.nickname}">Matt</span>
+                                    <div class="ui basic blue left pointing label me-padded-tiny" th:if="${comment.adminComment}">博主</div>&nbsp;&nbsp;&nbsp;
+                                    <a href="#" th:href="@{/admin/comments/details/{blogId}/delete(commentId=${comment.id},rootCommentId=${comment.rootCommentId},blogId=${blog.blogId})}"
+                                       style="color: #abacac" class="me-text" type="button" onclick="if(confirm( '确定删除？ ')==false)return false;">删除</a>
+                                </div>
+                                <div class="metadata">
+                                    <span class="date" th:text="${#dates.format(comment.createTime,'yyyy-MM-dd HH:mm')}">今天下午 5:42</span>
+                                </div>
+                                <div class="text" th:text="${comment.content}">太赞了！ </div>
+                            </div>
+                            <!--                                二级的评论，嵌套的关系-->
+                            <div class="comments" th:if="${#arrays.length(comment.replyComments)}>0">
+                                <div class="comment" th:each="reply : ${comment.replyComments}">
+                                    <a class="avatar">
+                                        <img src="https://picsum.photos/id/1/100/100" th:src="@{${reply.avatar}}">
+                                    </a>
+                                    <div class="content">
+                                        <div class="author">
+                                            <span th:text="${reply.nickname}">小白</span>
+                                            <div class="ui basic blue left pointing label me-padded-tiny" th:if="${reply.adminComment}">博主</div>&nbsp;
+                                            <span th:text="|@ ${reply.parentCommentName}|" style="color: blue !important;">@ 小黑</span>&nbsp;&nbsp;&nbsp;
+                                            <a href="#" th:href="@{/admin/comments/details/{blogId}/delete(commentId=${reply.id},rootCommentId=${reply.rootCommentId},blogId=${blog.blogId})}"
+                                               style="color: #abacac" type="button" onclick="if(confirm( '确定删除？ ')==false)return false;" class="me-text" >删除</a>
+                                        </div>
+                                        <div class="metadata">
+                                            <span class="date" th:text="${#dates.format(reply.createTime,'yyyy-MM-dd HH:mm')}">今天下午 5:42</span>
+                                        </div>
+                                        <div class="text" th:text="${reply.content}">太赞了！ </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <!--/*-->
+                        <div class="comment">
+                            <a class="avatar">
+                                <img src="https://picsum.photos/id/1/100/100">
+                            </a>
+                            <div class="content">
+                                <a class="author">Elliot Fu</a>
+                                <div class="metadata">
+                                    <span class="date">昨天上午12:30</span>
+                                </div>
+                                <div class="text">
+                                    <p>這對我的研究是非常有用.謝謝!</p>
+                                </div>
+                                <div class="actions">
+                                    <a class="reply">回复</a>
+                                </div>
+                            </div>
+                            <div class="comments">
+                                <div class="comment">
+                                    <a class="avatar">
+                                        <img src="https://picsum.photos/id/1/100/100">
+                                    </a>
+                                    <div class="content">
+                                        <a class="author">Jenny Hess</a>
+                                        <div class="metadata">
+                                            <span class="date">刚刚</span>
+                                        </div>
+                                        <div class="text">艾略特你永远是多么正确 :) </div>
+                                        <div class="actions">
+                                            <a class="reply">回复</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="comment">
+                            <a class="avatar">
+                                <img src="https://picsum.photos/id/1/100/100">
+                            </a>
+                            <div class="content">
+                                <a class="author">Joe Henderson</a>
+                                <div class="metadata">
+                                    <span class="date">5 天以前</span>
+                                </div>
+                                <div class="text">老兄，这太棒了。非常感谢。 </div>
+                                <div class="actions">
+                                    <a class="reply">回复</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!--*/-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<br/>
+<br/>
+
+
+<!--底部footer-->
+<div th:replace="common :: footer" class="ui inverted vertical segment me-padded-tb-massive">
+
+    <div class="ui center aligned container">
+        <div class="ui inverted divided stackable grid">
+            <div class="three wide column">
+                <div class="ui inverted link list">
+                    <div class="item">
+                        <img src="../../static/images/wechat.jpg" th:src="@{/images/wechat.jpg}" class="ui rounded image" alt="" style="width: 110px">
+                    </div>
+                </div>
+            </div>
+            <div class="three wide column">
+                <h4 class="ui inverted header me-text-thin me-text-spaced">最新博客</h4>
+                <div class="ui inverted link list">
+                    <a href="#" class="item">用户故事 （User Story）</a>
+                    <a href="#" class="item">用户故事 （User Story）</a>
+                    <a href="#" class="item">用户故事 （User Story）</a>
+                </div>
+            </div>
+            <div class="three wide column">
+                <h4 class="ui inverted header me-text-thin me-text-spaced">联系我</h4>
+                <div class="ui inverted link list">
+                    <a href="#" class="item">Email: xjb19990106@163.com</a>
+                    <a href="#" class="item">QQ: 2480662125</a>
+                </div>
+            </div>
+            <div class="seven wide column">
+                <h4 class="ui inverted header me-text-thin me-text-spaced">MyBlog</h4>
+                <div class="ui inverted link list">
+                    <div class="item">
+                        <p class="me-text-thin me-text-spaced">这是我的个人博客、记录学习进度和关于编程、写作、思考相关的任何内容...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ui inverted section divider"></div>
+        <p class="me-text-thin me-text-spaced me-opacity-tiny">Copyright © 2021 - 2021  XJB   Designed by Bo</p>
+    </div>
+
+</div>
+
+
+<div th:include="common :: script">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.2/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+</div>
+
+<script src="../static/lib/scrollTo/jquery.scrollTo.min.js" th:src="@{/lib/scrollTo/jquery.scrollTo.min.js}"></script>
+<script src="../static/lib/prism/prism.js" th:src="@{/lib/prism/prism.js}"></script>
+<script src="../static/lib/waypoints/jquery.waypoints.min.js" th:src="@{/lib/waypoints/jquery.waypoints.min.js}"></script>
+
+
+
+<script th:inline="javascript">
+    $('#adminMenuToggle').click(function (){
+        $('.m-item').toggleClass('me-mobile-hide');
+    });
+    $('#visitorsMenuToggle').click(function (){
+        $('.m-item').toggleClass('me-mobile-hide');
+    });
+
+
+    //消息提示关闭初始化
+    $('.message .close').on('click',function () {
+        $(this).closest('.message').transition('fade');
+    });
+
+</script>
+</body>
+</html>

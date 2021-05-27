@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xjb.dao.TypeMapper">
+
+    <!--新增保存分类-->
+    <insert id="saveType" parameterType="com.xjb.pojo.Type">
+        insert into `t_type`(`id`,`name`) values (#{id},#{name});
+    </insert>
+
+
+    <select id="getTypeDescIndex" resultType="com.xjb.vo.TypeIndex" parameterType="integer">
+
+        SELECT t.`id` AS typeId,t.`name` AS typeName,COUNT(b.`id`) AS blogCount
+        FROM `t_blog` b ,`t_type` t
+        WHERE b.`type_id` = t.`id` AND b.`published` = 1
+        GROUP BY t.`id`
+        ORDER BY COUNT(b.`id`) DESC
+        LIMIT #{typeCount};
+
+    </select>
+
+
+
+</mapper>
